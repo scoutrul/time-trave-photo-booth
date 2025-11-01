@@ -20,6 +20,12 @@ const HistoryIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
+const DownloadIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+    </svg>
+);
+
 const ImagePlaceholder: React.FC<{ title: string, children?: React.ReactNode }> = ({ title, children }) => (
     <div className="w-full aspect-square bg-gray-700/50 rounded-lg flex flex-col items-center justify-center border-2 border-dashed border-gray-500 text-gray-400 p-4">
         {children}
@@ -38,6 +44,17 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
     reader.readAsDataURL(blob);
   });
 };
+
+const examplePrompts = [
+    'A 1920s jazz club in New York',
+    'Ancient Rome as a gladiator',
+    'Walking on the moon in 1969',
+    'A knight in medieval Europe',
+    'A flapper at a Roaring Twenties party',
+    'Sailing with Vikings',
+    'A Parisian artist in the 1890s',
+    'Exploring the Amazon rainforest in the 19th century',
+];
 
 
 export default function App() {
@@ -101,8 +118,6 @@ export default function App() {
             const base64Data = await blobToBase64(file);
             setOriginalImage({ data: `data:${file.type};base64,${base64Data}`, mimeType: file.type });
         }
-        // By clearing the value, we allow the user to select the same file again,
-        // which fixes the bug where re-uploading the same image doesn't work.
         event.target.value = '';
     };
     
@@ -124,6 +139,16 @@ export default function App() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSaveImage = () => {
+        if (!generatedImage) return;
+        const link = document.createElement('a');
+        link.href = generatedImage;
+        link.download = 'time-travel-photo.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const handleStartOver = () => {
@@ -210,7 +235,7 @@ export default function App() {
                                     </ImagePlaceholder>
                                 )}
                             </div>
-                            <div className="flex items-center space-x-4">
+                            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
                                 <button
                                     onClick={handleGenerate}
                                     disabled={!originalImage || !prompt || isLoading}
@@ -219,6 +244,15 @@ export default function App() {
                                     <HistoryIcon className="w-6 h-6" />
                                     <span>Time Travel!</span>
                                 </button>
+                                {generatedImage && (
+                                    <button
+                                        onClick={handleSaveImage}
+                                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center space-x-2"
+                                    >
+                                        <DownloadIcon className="w-6 h-6" />
+                                        <span>Save Image</span>
+                                    </button>
+                                )}
                                 <button onClick={handleStartOver} className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">
                                         Start Over
                                 </button>
@@ -235,12 +269,30 @@ export default function App() {
                             id="prompt"
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
-                            placeholder="e.g., 'A 1920s jazz club in New York', 'Ancient Rome as a gladiator', 'Walking on the moon'"
+                            placeholder="e.g., 'A 1920s jazz club in New York'"
                             rows={3}
                             className="w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
                             disabled={isLoading}
                         />
                     </div>
+
+                    {/* Example Prompts */}
+                    <div className="mt-4">
+                        <h3 className="text-md font-medium text-gray-300 mb-2">Need some inspiration?</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {examplePrompts.map((p) => (
+                                <button
+                                    key={p}
+                                    onClick={() => setPrompt(p)}
+                                    className="bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm py-1 px-3 rounded-full transition duration-200"
+                                    disabled={isLoading}
+                                >
+                                    {p}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
 
                     {error && (
                         <div className="mt-6 p-4 bg-red-900/50 border border-red-500 text-red-300 rounded-lg text-center">
