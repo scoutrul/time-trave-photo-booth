@@ -101,6 +101,9 @@ export default function App() {
             const base64Data = await blobToBase64(file);
             setOriginalImage({ data: `data:${file.type};base64,${base64Data}`, mimeType: file.type });
         }
+        // By clearing the value, we allow the user to select the same file again,
+        // which fixes the bug where re-uploading the same image doesn't work.
+        event.target.value = '';
     };
     
     const handleGenerate = async () => {
